@@ -257,6 +257,20 @@ class DriveManager: ObservableObject {
 
   // MARK: - Parsing and Data Creation Helpers
 
+  /// Whether a disk should be classified as a fixed internal drive for the
+  /// purposes of "Show Internal Disks". `diskutil`'s `Internal` flag reports
+  /// the *bus*, which is also true for the MacBook Pro built-in SD slot
+  /// (PCIe-attached); pair it with non-removable, non-ejectable media so an
+  /// inserted SD card still shows up when internal disks are hidden.
+  static func isFixedInternalDisk(infoPlist: [String: Any]?) -> Bool {
+    guard let info = infoPlist else { return false }
+    let internalBus = (info["Internal"] as? Bool) ?? false
+    guard internalBus else { return false }
+    let ejectable = (info["Ejectable"] as? Bool) ?? false
+    let removableMedia = (info["RemovableMedia"] as? Bool) ?? false
+    return !ejectable && !removableMedia
+  }
+
   private func parseDisks(from plist: [String: Any]) -> [PhysicalDisk] {
     guard let allDisksAndPartitions = plist["AllDisksAndPartitions"] as? [[String: Any]] else {
       return []
@@ -278,7 +292,8 @@ class DriveManager: ObservableObject {
 
     for diskData in rootDisks {
       let infoPlist = getInfoForDisk(for: diskData["DeviceIdentifier"] as? String ?? "")
-      if (infoPlist?["Internal"] as? Bool) ?? false && !shouldShowInternalDisks { continue }
+      let isFixedInternal = Self.isFixedInternalDisk(infoPlist: infoPlist)
+      if isFixedInternal && !shouldShowInternalDisks { continue }
 
       guard let physicalIdentifier = diskData["DeviceIdentifier"] as? String else { continue }
 
@@ -311,7 +326,7 @@ class DriveManager: ObservableObject {
 
       if !partitions.isEmpty || !containers.isEmpty {
         let connectionInfo = getConnectionInfo(
-          from: infoPlist, isInternal: (infoPlist?["Internal"] as? Bool) ?? false)
+          from: infoPlist, isInternal: isFixedInternal)
         let diskName =
           infoPlist?["IORegistryEntryName"] as? String ?? infoPlist?["MediaName"]
           as? String
