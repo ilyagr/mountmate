@@ -24,23 +24,32 @@ final class DriveFilteringTests: XCTestCase {
   }
 
   // The PCIe-attached built-in MacBook Pro SD reader reports Internal=true,
-  // but the inserted card is ejectable / its media is removable.
+  // but a card inserted into it has RemovableMedia=true (verified via
+  // `diskutil info -plist` on a real card, which also reports Ejectable=true,
+  // BusProtocol="Secure Digital", MediaName="Built In SDXC Reader").
   func testBuiltInSDCardIsNotFixedInternal() {
-    let ejectableSD: [String: Any] = [
+    let info: [String: Any] = [
       "Internal": true,
       "Ejectable": true,
-      "RemovableMedia": false,
-      "BusProtocol": "Secure Digital",
-    ]
-    XCTAssertFalse(DriveManager.isFixedInternalDisk(infoPlist: ejectableSD))
-
-    let removableMediaSD: [String: Any] = [
-      "Internal": true,
-      "Ejectable": false,
       "RemovableMedia": true,
       "BusProtocol": "Secure Digital",
     ]
-    XCTAssertFalse(DriveManager.isFixedInternalDisk(infoPlist: removableMediaSD))
+    XCTAssertFalse(DriveManager.isFixedInternalDisk(infoPlist: info))
+  }
+
+  // A hypothetical hot-swappable internal drive bay (e.g. legacy Mac Pro
+  // tower SATA bay) reports Internal=true with the drive itself ejectable,
+  // but the drive *is* the device — its media isn't removable. Such a disk
+  // should stay classified as internal so users still see the boot-drive
+  // bucket they expect.
+  func testHotSwapInternalBayStaysInternal() {
+    let info: [String: Any] = [
+      "Internal": true,
+      "Ejectable": true,
+      "RemovableMedia": false,
+      "BusProtocol": "SATA",
+    ]
+    XCTAssertTrue(DriveManager.isFixedInternalDisk(infoPlist: info))
   }
 
   func testMissingPlistIsNotFixedInternal() {

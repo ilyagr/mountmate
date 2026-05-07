@@ -260,15 +260,15 @@ class DriveManager: ObservableObject {
   /// Whether a disk should be classified as a fixed internal drive for the
   /// purposes of "Show Internal Disks". `diskutil`'s `Internal` flag reports
   /// the *bus*, which is also true for the MacBook Pro built-in SD slot
-  /// (PCIe-attached); pair it with non-removable, non-ejectable media so an
-  /// inserted SD card still shows up when internal disks are hidden.
+  /// (PCIe-attached). `RemovableMedia` distinguishes media-in-a-fixed-reader
+  /// (SD card, optical disc — true) from a fixed disk (boot SSD — false), so
+  /// an inserted SD card still shows up when internal disks are hidden.
   static func isFixedInternalDisk(infoPlist: [String: Any]?) -> Bool {
     guard let info = infoPlist else { return false }
     let internalBus = (info["Internal"] as? Bool) ?? false
     guard internalBus else { return false }
-    let ejectable = (info["Ejectable"] as? Bool) ?? false
     let removableMedia = (info["RemovableMedia"] as? Bool) ?? false
-    return !ejectable && !removableMedia
+    return !removableMedia
   }
 
   private func parseDisks(from plist: [String: Any]) -> [PhysicalDisk] {
