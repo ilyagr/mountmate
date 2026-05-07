@@ -53,6 +53,11 @@
 			path = MountMate;
 			sourceTree = "<group>";
 		};
+		B4AADB602DFE3BBD00EDAAC2 /* MountMateTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MountMateTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				B4AADB132DFE3BBC00EDAAC2 /* MountMate */,
+				B4AADB602DFE3BBD00EDAAC2 /* MountMateTests */,
 				B4AADB4E2DFE3E1600EDAAC2 /* Frameworks */,
 				B4AADB122DFE3BBC00EDAAC2 /* Products */,
 			);
@@ -148,6 +154,9 @@
 			);
 			dependencies = (
 				B4AADB212DFE3BBD00EDAAC2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B4AADB602DFE3BBD00EDAAC2 /* MountMateTests */,
 			);
 			name = MountMateTests;
 			packageProductDependencies = (
